@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "sosa-connect",
-    "slug": "sosa-connect",
+    "name": "Kuwana",
+    "slug": "kuwana",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "sosaconnect",
+    "scheme": "kuwana",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -34,6 +34,9 @@
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png"
+    },
+    "extra": {
+      "apiUrl": "http://localhost:3001/api/v1"
     },
     "plugins": [
       "expo-router",
