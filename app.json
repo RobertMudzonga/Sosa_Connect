@@ -11,9 +11,10 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Sosa Connect needs your location to provide emergency services and show nearby help.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Sosa Connect needs your location to provide emergency services and show nearby help."
-      }
+        "NSLocationWhenInUseUsageDescription": "Kuwana needs your location to deliver your orders, show nearby sellers and provide emergency help.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Kuwana needs your location to deliver your orders, show nearby sellers and provide emergency help."
+      },
+      "bundleIdentifier": "com.robert263.kuwana"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,19 +25,21 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
-      "config": {
-        "googleMaps": {
-          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
-        }
-      }
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
+      "package": "com.robert263.kuwana"
     },
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
     "extra": {
-      "apiUrl": "http://localhost:3001/api/v1"
+      "apiUrl": "http://localhost:3000/api/v1",
+      "eas": {
+        "projectId": "18800464-c720-4074-9568-231be4d708e3"
+      }
     },
     "plugins": [
       "expo-router",
@@ -51,11 +54,26 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#0E3F7C"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Kuwana uses your photos to add pictures to your product listings.",
+          "cameraPermission": "Kuwana uses the camera to photograph products and confirm deliveries."
+        }
+      ],
+      "@maplibre/maplibre-react-native"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "owner": "robert263"
   }
 }

@@ -11,6 +11,8 @@ interface AppState {
     longitude: number;
     address?: string;
   } | null;
+  notificationsEnabled: boolean;
+  setNotificationsEnabled: (enabled: boolean) => void;
   setMode: (mode: AppMode) => void;
   setLocation: (location: AppState['location']) => void;
   toggleMode: () => void;
@@ -21,6 +23,8 @@ export const useAppStore = create<AppState>()(
     (set) => ({
       mode: 'buyer',
       location: null,
+      notificationsEnabled: true,
+      setNotificationsEnabled: (notificationsEnabled) => set({ notificationsEnabled }),
       setMode: (mode) => set({ mode }),
       setLocation: (location) => set({ location }),
       toggleMode: () => set((state) => ({ mode: state.mode === 'buyer' ? 'seller' : 'buyer' })),

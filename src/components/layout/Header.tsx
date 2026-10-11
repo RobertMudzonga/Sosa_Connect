@@ -37,7 +37,7 @@ export const Header: React.FC = () => {
             <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
           ) : (
             <Typography variant="body" weight="bold" color={activeTheme.primary}>
-              {user?.fullName?.charAt(0) || 'A'}
+              {user?.fullName?.charAt(0) || '?'}
             </Typography>
           )}
           <View style={[styles.onlineIndicator, { borderColor: activeTheme.background }]} />
@@ -46,7 +46,7 @@ export const Header: React.FC = () => {
 
       <View style={styles.greetingContainer}>
         <Typography variant="h2" weight="regular">
-          {getTimeGreeting()}, <Typography variant="h2" weight="bold" color={activeTheme.primary}>{user?.fullName?.split(' ')[0] || 'Amara'}</Typography>
+          {getTimeGreeting()}, <Typography variant="h2" weight="bold" color={activeTheme.primary}>{user?.fullName?.split(' ')[0] || 'there'}</Typography>
         </Typography>
       </View>
 

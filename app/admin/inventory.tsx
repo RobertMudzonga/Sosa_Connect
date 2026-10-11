@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import { notify } from '@/src/utils/notify';
 import { Typography } from '@/src/components/common/Typography';
 import { Card } from '@/src/components/common/Card';
 import { Button } from '@/src/components/common/Button';
@@ -25,13 +26,13 @@ export default function AdminInventoryScreen() {
 
   const handleSubmit = async () => {
     if (!providerId || !title || !price || !category) {
-      Alert.alert('Missing fields', 'Please select a provider and enter title, price, and category.');
+      notify('Missing fields', 'Please select a provider and enter title, price, and category.');
       return;
     }
 
     const parsedPrice = Number(price);
     if (Number.isNaN(parsedPrice) || parsedPrice <= 0) {
-      Alert.alert('Invalid price', 'Please enter a valid positive number.');
+      notify('Invalid price', 'Please enter a valid positive number.');
       return;
     }
 
@@ -47,7 +48,7 @@ export default function AdminInventoryScreen() {
         tags: tags.split(',').map((tag) => tag.trim()).filter(Boolean),
         imageUrl: imageUrl || undefined,
       });
-      Alert.alert('Success', 'Item created and assigned to the selected provider');
+      notify('Success', 'Item created and assigned to the selected provider');
       setTitle('');
       setDescription('');
       setPrice('');
@@ -56,7 +57,7 @@ export default function AdminInventoryScreen() {
       setImageUrl('');
       setTags('');
     } catch (error: any) {
-      Alert.alert('Unable to create item', error?.response?.data?.message || error?.message || 'Try again');
+      notify('Unable to create item', error?.response?.data?.message || error?.message || 'Try again');
     }
   };
 
@@ -146,10 +147,10 @@ export default function AdminInventoryScreen() {
           />
 
           <Button
-            label={createService.isLoading ? 'Creating...' : 'Create Item'}
+            label={createService.isPending ? 'Creating...' : 'Create Item'}
             variant="primary"
             onPress={handleSubmit}
-            disabled={createService.isLoading}
+            disabled={createService.isPending}
             style={styles.submitButton}
           />
         </View>
@@ -197,6 +198,9 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     textAlignVertical: 'top',
     fontSize: 16,
+  },
+  label: {
+    marginBottom: spacing.sm,
   },
   submitButton: {
     marginTop: spacing.md,

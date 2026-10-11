@@ -8,23 +8,42 @@ import { spacing, radius } from '@/src/theme/spacing';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuthStore } from '@/src/store/auth-store';
 import { useAppStore } from '@/src/store/app-store';
-import { User, Bell, Shield, LogOut, ChevronRight, AlertCircle, ShoppingBag, CreditCard, Settings } from 'lucide-react-native';
+import { Bell, Shield, LogOut, ChevronRight, AlertCircle, ShoppingBag, MapPin, Heart, Settings, Truck, ClipboardList, Smartphone, Siren } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { unregisterFromPush } from '@/src/services/notifications';
+import { useCartStore } from '@/src/store/cart-store';
+import { useFavouritesStore } from '@/src/store/favourites-store';
 
 export default function ProfileScreen() {
   const colorScheme = useColorScheme() ?? 'dark';
   const activeTheme = theme[colorScheme];
   const router = useRouter();
   const { user, clearAuth } = useAuthStore();
-  const { mode, toggleMode } = useAppStore();
+  const { mode, toggleMode, notificationsEnabled } = useAppStore();
+  const clearCart = useCartStore((s) => s.clearCart);
 
-  const MENU_ITEMS = [
+  const MENU_ITEMS: { id: string; label: string; icon: any; route: string; requiresAuth?: boolean; right?: React.ReactNode }[] = [
     { id: 'orders', label: 'My Orders', icon: ShoppingBag, route: '/orders', requiresAuth: true },
-    { id: 'payments', label: 'Payment Methods', icon: CreditCard, route: '/payments', requiresAuth: true },
-    { id: 'notifications', label: 'Notifications', icon: Bell, right: <Switch value={true} />, route: '/notifications', requiresAuth: true },
+    { id: 'addresses', label: 'Saved Addresses', icon: MapPin, route: '/addresses', requiresAuth: true },
+    { id: 'favourites', label: 'Favourites', icon: Heart, route: '/favourites' },
+    {
+      id: 'phone', label: 'Phone Number', icon: Smartphone, route: '/verify-phone', requiresAuth: true,
+      right: <Typography variant="caption" color={user?.phoneVerified ? palette.success : palette.warning}>{user?.phoneVerified ? 'Verified' : 'Verify'}</Typography>,
+    },
+    { id: 'emergency', label: 'Emergency Contacts', icon: Siren, route: '/emergency-contacts' },
+    {
+      id: 'notifications', label: 'Notifications', icon: Bell, route: '/notifications', requiresAuth: true,
+      right: <Typography variant="caption" color={activeTheme.textSecondary}>{notificationsEnabled ? 'On' : 'Off'}</Typography>,
+    },
     { id: 'security', label: 'Privacy & Security', icon: Shield, route: '/security', requiresAuth: true },
   ];
 
+  if (user?.role === 'PROVIDER') {
+    MENU_ITEMS.unshift({ id: 'seller-orders', label: 'Incoming Orders', icon: ClipboardList, route: '/seller/orders' });
+  }
+  if (user?.role === 'DRIVER') {
+    MENU_ITEMS.unshift({ id: 'driver', label: 'My Deliveries', icon: Truck, route: '/driver' });
+  }
   if (user?.role === 'ADMIN') {
     MENU_ITEMS.unshift({ id: 'admin', label: 'Admin Dashboard', icon: Settings, route: '/admin' });
   }
@@ -52,8 +71,11 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleLogout = () => {
-    console.log('[Logout] Clearing auth and navigating to login...');
+  const handleLogout = async () => {
+    await unregisterFromPush();
+    clearCart();
+    // Favourites live on the server once signed in; don't leave them for the next person on this device
+    useFavouritesStore.getState().setItems([]);
     clearAuth();
     router.replace('/(auth)/login');
   };
@@ -63,7 +85,7 @@ export default function ProfileScreen() {
       <View style={styles.header}>
         <View style={[styles.avatarBox, { backgroundColor: activeTheme.surfaceVariant }]}>
           <Typography variant="h1" weight="bold" color={activeTheme.primary}>
-            {user?.fullName?.charAt(0) || 'A'}
+            {user?.fullName?.charAt(0) || '?'}
           </Typography>
         </View>
         <Typography variant="h2" weight="bold" style={{ marginTop: spacing.md }}>
@@ -76,14 +98,9 @@ export default function ProfileScreen() {
         <View style={styles.badgeRow}>
           <View style={[styles.roleBadge, { backgroundColor: activeTheme.primary + '20' }]}>
             <Typography variant="caption" weight="bold" color={activeTheme.primary}>
-              {user ? 'VERIFIED USER' : 'GUEST'}
+              {!user ? 'GUEST' : user.role === 'PROVIDER' ? 'SELLER' : user.role}
             </Typography>
           </View>
-          {user?.role === 'PROVIDER' && (
-            <View style={[styles.roleBadge, { backgroundColor: palette.success + '20' }]}>
-              <Typography variant="caption" weight="bold" color={palette.success}>TOP SELLER</Typography>
-            </View>
-          )}
         </View>
 
         {!user && (

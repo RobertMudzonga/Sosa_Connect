@@ -39,6 +39,30 @@ export default function AdminDashboard() {
       color: palette.neutral[600],
       route: '/admin/inventory',
     },
+    {
+      id: 'orders',
+      title: 'Orders & Refunds',
+      description: 'Monitor orders, cancel, refund',
+      letter: 'O',
+      color: palette.info,
+      route: '/admin/orders',
+    },
+    {
+      id: 'alerts',
+      title: 'SOS Alerts',
+      description: 'Open emergency alerts from users',
+      letter: '!',
+      color: palette.danger,
+      route: '/admin/alerts',
+    },
+    {
+      id: 'settings',
+      title: 'Fees & Commission',
+      description: 'Platform commission, service fee, tax',
+      letter: 'F',
+      color: palette.warning,
+      route: '/admin/settings',
+    },
   ];
 
   return (
@@ -101,7 +125,7 @@ export default function AdminDashboard() {
           <View style={styles.activityItem}>
             <Typography variant="h2" weight="bold" color={palette.warning}>!</Typography>
             <Typography variant="bodySm" style={{ flex: 1, marginLeft: 8, color: activeTheme.text }}>
-              New seller onboarded: Emmanuel's Auto Parts
+              New seller onboarded: Emmanuel&apos;s Auto Parts
             </Typography>
             <Typography variant="caption" color={activeTheme.textSecondary}>2h ago</Typography>
           </View>
