@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { 
   TouchableOpacity, 
   TouchableOpacityProps, 
@@ -33,22 +33,6 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   const colorScheme = useColorScheme() ?? 'dark';
   const activeTheme = theme[colorScheme];
-  const buttonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (Platform.OS === 'web' && buttonRef.current && onPress) {
-      const button = buttonRef.current;
-      const handleNativeClick = (event: MouseEvent) => {
-        if (!disabled && !loading) {
-          event.preventDefault();
-          onPress();
-        }
-      };
-
-      button.addEventListener('click', handleNativeClick);
-      return () => button.removeEventListener('click', handleNativeClick);
-    }
-  }, [onPress, disabled, loading]);
 
   const getVariantStyle = () => {
     switch (variant) {
@@ -78,9 +62,9 @@ export const Button: React.FC<ButtonProps> = ({
     ? activeTheme.primary 
     : variant === 'danger' ? '#fff' : activeTheme.background;
 
-  const handlePress = () => {
+  const handlePress = (event?: any) => {
     if (!disabled && !loading && onPress) {
-      onPress();
+      onPress(event);
     }
   };
 
@@ -96,7 +80,6 @@ export const Button: React.FC<ButtonProps> = ({
 
     return (
       <button
-        ref={buttonRef}
         type="button"
         onClick={handlePress}
         disabled={disabled || loading}
@@ -114,9 +97,11 @@ export const Button: React.FC<ButtonProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
           gap: '8px',
+          ...(StyleSheet.flatten(style) as object),
         } as React.CSSProperties}
       >
-        {label}
+        {icon}
+        {loading ? '…' : label}
       </button>
     );
   }

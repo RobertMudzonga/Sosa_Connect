@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import { notify } from '@/src/utils/notify';
 import { Typography } from '@/src/components/common/Typography';
 import { Card } from '@/src/components/common/Card';
 import { Button } from '@/src/components/common/Button';
@@ -12,7 +13,7 @@ import {
   useCreateAdminProvider,
 } from '@/src/hooks/useAdmin';
 
-const ROLES = ['USER', 'PROVIDER'] as const;
+const ROLES = ['USER', 'PROVIDER', 'DRIVER'] as const;
 
 export default function AdminUsersScreen() {
   const colorScheme = useColorScheme() ?? 'dark';
@@ -21,7 +22,7 @@ export default function AdminUsersScreen() {
   const createUser = useCreateAdminUser();
   const createProvider = useCreateAdminProvider();
 
-  const [role, setRole] = useState<'USER' | 'PROVIDER'>('PROVIDER');
+  const [role, setRole] = useState<'USER' | 'PROVIDER' | 'DRIVER'>('PROVIDER');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -33,11 +34,11 @@ export default function AdminUsersScreen() {
   const [address, setAddress] = useState('');
   const [website, setWebsite] = useState('');
 
-  const isSubmitting = createUser.isLoading || createProvider.isLoading;
+  const isSubmitting = createUser.isPending || createProvider.isPending;
 
   const handleSubmit = async () => {
     if (!email || !password || !fullName) {
-      Alert.alert('Missing fields', 'Please fill in email, password and full name.');
+      notify('Missing fields', 'Please fill in email, password and full name.');
       return;
     }
 
@@ -55,7 +56,7 @@ export default function AdminUsersScreen() {
           address: address || undefined,
           website: website || undefined,
         });
-        Alert.alert('Success', 'Service provider created successfully');
+        notify('Success', 'Service provider created successfully');
       } else {
         await createUser.mutateAsync({
           email,
@@ -64,7 +65,7 @@ export default function AdminUsersScreen() {
           phone: phone || undefined,
           role,
         });
-        Alert.alert('Success', `${role === 'PROVIDER' ? 'Provider account' : 'User account'} created successfully`);
+        notify('Success', `${role === 'PROVIDER' ? 'Provider account' : role === 'DRIVER' ? 'Driver account' : 'User account'} created successfully`);
       }
 
       setEmail('');
@@ -77,7 +78,7 @@ export default function AdminUsersScreen() {
       setAddress('');
       setWebsite('');
     } catch (error: any) {
-      Alert.alert('Unable to create account', error?.response?.data?.message || error?.message || 'Try again');
+      notify('Unable to create account', error?.response?.data?.message || error?.message || 'Try again');
     }
   };
 

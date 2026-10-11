@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import { View, StyleSheet, FlatList, TouchableOpacity, ScrollView } from 'react-native';
 import { SearchBar } from '@/src/components/features/SearchBar';
 import { ProductCard, Product } from '@/src/components/common/ProductCard';
@@ -8,32 +9,39 @@ import { spacing, radius } from '@/src/theme/spacing';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { CheckCircle2 } from 'lucide-react-native';
 import { useServices } from '@/src/hooks/useServices';
+import { toProduct } from '@/src/utils/product';
 
 const CATEGORIES = ['All', 'Goods', 'Food', 'Services', 'Delivery'];
 
 export default function SearchScreen() {
   const colorScheme = useColorScheme() ?? 'dark';
   const activeTheme = theme[colorScheme];
+  const params = useLocalSearchParams<{ category?: string }>();
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
 
+  // Category tiles on the home screen deep-link here with ?category=FOOD etc.
+  useEffect(() => {
+    if (!params.category) return;
+    const match = CATEGORIES.find(c => c.toUpperCase() === String(params.category).toUpperCase());
+    if (match) setSelectedCategory(match);
+  }, [params.category]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const { data: services, isLoading } = useServices({ 
     category: selectedCategory === 'All' ? undefined : selectedCategory.toUpperCase(),
-    search: search || undefined
+    search: debouncedSearch || undefined
   });
 
-  const filteredProducts: Product[] = (services || []).map(s => ({
-    id: s.id,
-    title: s.title,
-    price: s.price,
-    currency: s.currency,
-    location: s.provider?.city || 'Harare',
-    rating: s.provider?.rating || 4.2,
-    providerName: s.provider?.businessName || 'Verified Seller',
-    category: s.category,
-    isVerified: true,
-  })).filter(p => !verifiedOnly || p.isVerified);
+  const filteredProducts: Product[] = (services || [])
+    .map(toProduct)
+    .filter(p => !verifiedOnly || p.isVerified);
 
   return (
     <View style={[styles.container, { backgroundColor: activeTheme.background }]}>
@@ -45,7 +53,7 @@ export default function SearchScreen() {
       <SearchBar 
         value={search} 
         onChangeText={setSearch} 
-        onFilterPress={() => {}} // Could open a modal later
+        onFilterPress={() => setVerifiedOnly(!verifiedOnly)}
       />
 
       <View>
@@ -105,7 +113,9 @@ export default function SearchScreen() {
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Typography variant="body" color={activeTheme.textSecondary}>No results found for your search.</Typography>
+            <Typography variant="body" color={activeTheme.textSecondary}>
+              {isLoading ? 'Loading…' : 'No results found for your search.'}
+            </Typography>
           </View>
         }
       />

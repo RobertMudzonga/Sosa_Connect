@@ -13,6 +13,7 @@ import { spacing } from '@/src/theme/spacing';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAppStore } from '@/src/store/app-store';
 import { useServices } from '@/src/hooks/useServices';
+import { toProduct } from '@/src/utils/product';
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme() ?? 'dark';
@@ -26,18 +27,7 @@ export default function HomeScreen() {
     refetch().finally(() => setRefreshing(false));
   }, [refetch]);
 
-  const trending: Product[] = (services || []).map(s => ({
-    id: s.id,
-    title: s.title,
-    price: s.price,
-    currency: s.currency,
-    location: s.provider?.city || 'Harare',
-    rating: s.provider?.rating || 4.5,
-    providerName: s.provider?.businessName || 'Verified Seller',
-    category: s.category,
-    imageUrl: s.imageUrl,
-    isVerified: true,
-  }));
+  const trending: Product[] = (services || []).map(toProduct);
 
   return (
     <View style={[styles.container, { backgroundColor: activeTheme.background }]}>

@@ -4,10 +4,12 @@ import { Platform } from 'react-native';
 import { Home, Search, AlertCircle, ShoppingCart, User } from 'lucide-react-native';
 import { theme } from '@/src/theme/colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useCartStore } from '@/src/store/cart-store';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme() ?? 'dark';
   const activeTheme = theme[colorScheme];
+  const cartCount = useCartStore((state) => state.items.reduce((sum, i) => sum + i.quantity, 0));
 
   return (
     <Tabs
@@ -48,6 +50,7 @@ export default function TabLayout() {
         name="cart"
         options={{
           title: 'Cart',
+          tabBarBadge: cartCount > 0 ? cartCount : undefined,
           tabBarIcon: ({ color, size }) => <ShoppingCart color={color} size={size} />,
         }}
       />

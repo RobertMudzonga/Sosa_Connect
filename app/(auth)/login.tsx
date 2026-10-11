@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Typography } from '@/src/components/common/Typography';
 import { Button } from '@/src/components/common/Button';
@@ -9,6 +9,8 @@ import { spacing, radius } from '@/src/theme/spacing';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuthStore } from '@/src/store/auth-store';
 import { api } from '@/src/services/api';
+import { notify } from '@/src/utils/notify';
+import { getErrorMessage } from '@/src/utils/format';
 import { Mail, Lock, LogIn, Shield, Store, User as UserIcon } from 'lucide-react-native';
 
 export default function LoginScreen() {
@@ -26,28 +28,29 @@ export default function LoginScreen() {
     const finalPass = overridePass || password;
 
     if (!finalEmail || !finalPass) {
-      Alert.alert('Error', 'Please enter email and password');
+      notify('Error', 'Please enter email and password');
       return;
     }
 
     setLoading(true);
     try {
       const { data } = await api.post('/auth/login', {
-        email: finalEmail,
+        email: finalEmail.trim().toLowerCase(),
         password: finalPass,
       });
-      
-      setAuth(data.accessToken, data.refreshToken, data.user);
+      const { accessToken, refreshToken, user } = data.data;
+      setAuth(accessToken, refreshToken, user);
       router.replace('/(tabs)');
     } catch (error: any) {
       console.error('Login error:', error.response?.data || error.message);
-      Alert.alert('Login Failed', error.response?.data?.message || 'Invalid credentials');
+      notify('Login Failed', getErrorMessage(error, 'Invalid credentials'));
     } finally {
       setLoading(false);
     }
   };
 
-  const QUICK_LOGINS = [
+  // Seeded demo accounts — development builds only, never shipped to users
+  const QUICK_LOGINS = !__DEV__ ? [] : [
     { label: 'Admin Account', email: 'admin@sosaconnect.zw', pass: 'Admin@Sosa2024!', icon: Shield, color: palette.primary[600] },
     { label: 'Seller Account', email: 'emmanuel.k@example.zw', pass: 'Provider@1234!', icon: Store, color: palette.secondary[600] },
     { label: 'Buyer Account', email: 'amara.moyo@example.zw', pass: 'User@1234!', icon: UserIcon, color: palette.neutral[600] },
@@ -93,6 +96,16 @@ export default function LoginScreen() {
             />
           </View>
 
+          <Typography
+            variant="bodySm"
+            weight="semibold"
+            color={activeTheme.primary}
+            align="right"
+            onPress={() => router.push('/(auth)/forgot-password')}
+          >
+            Forgot password?
+          </Typography>
+
           <Button 
             label="Log In" 
             variant="primary" 
@@ -100,8 +113,16 @@ export default function LoginScreen() {
             loading={loading}
             style={styles.loginBtn}
           />
+
+          <View style={styles.signupRow}>
+            <Typography variant="bodySm" color={activeTheme.textSecondary}>New to Kuwana? </Typography>
+            <Typography variant="bodySm" weight="bold" color={activeTheme.primary} onPress={() => router.push('/(auth)/register')}>
+              Create an account
+            </Typography>
+          </View>
         </View>
 
+        {QUICK_LOGINS.length > 0 && <>
         <View style={styles.dividerRow}>
           <View style={[styles.line, { backgroundColor: activeTheme.border }]} />
           <Typography variant="caption" color={activeTheme.textSecondary} style={{ marginHorizontal: 12 }}>OR QUICK LOGIN</Typography>
@@ -122,6 +143,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
           ))}
         </View>
+        </>}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -172,6 +194,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   loginBtn: {
+    marginTop: spacing.sm,
+  },
+  signupRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     marginTop: spacing.sm,
   },
   dividerRow: {

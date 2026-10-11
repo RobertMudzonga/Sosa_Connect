@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, FlatList } from 'react-native';
 import { Typography } from '@/src/components/common/Typography';
 import { Card } from '@/src/components/common/Card';
 import { Button } from '@/src/components/common/Button';
@@ -8,6 +8,8 @@ import { spacing, radius } from '@/src/theme/spacing';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { usePendingProviders, useApproveProvider } from '@/src/hooks/useProviders';
 import { ShieldCheck, XCircle, MapPin, Phone } from 'lucide-react-native';
+import { confirmAction, notify } from '@/src/utils/notify';
+import { getErrorMessage } from '@/src/utils/format';
 
 export default function ApprovalsScreen() {
   const colorScheme = useColorScheme() ?? 'dark';
@@ -15,22 +17,21 @@ export default function ApprovalsScreen() {
   const { data: pending, isLoading, refetch } = usePendingProviders();
   const approveMutation = useApproveProvider();
 
-  const handleAction = (id: string, status: 'APPROVED' | 'REJECTED') => {
-    Alert.alert(
-      `${status === 'APPROVED' ? 'Approve' : 'Reject'} Seller`,
-      `Are you sure you want to ${status.toLowerCase()} this seller?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: status === 'APPROVED' ? 'Approve' : 'Reject', 
-          style: status === 'APPROVED' ? 'default' : 'destructive',
-          onPress: async () => {
-            await approveMutation.mutateAsync({ id, status });
-            Alert.alert('Success', `Seller has been ${status.toLowerCase()}`);
-          }
-        }
-      ]
+  const handleAction = async (id: string, status: 'APPROVED' | 'REJECTED') => {
+    const verb = status === 'APPROVED' ? 'Approve' : 'Reject';
+    const confirmed = await confirmAction(
+      `${verb} Seller`,
+      `Are you sure you want to ${verb.toLowerCase()} this seller?`,
+      verb,
+      status === 'REJECTED',
     );
+    if (!confirmed) return;
+    try {
+      await approveMutation.mutateAsync({ id, status });
+      notify('Success', `Seller has been ${status.toLowerCase()}`);
+    } catch (error) {
+      notify('Action failed', getErrorMessage(error));
+    }
   };
 
   const renderItem = ({ item }: { item: any }) => (
@@ -48,7 +49,7 @@ export default function ApprovalsScreen() {
       <View style={styles.infoRow}>
         <MapPin size={14} color={activeTheme.textSecondary} />
         <Typography variant="bodySm" color={activeTheme.textSecondary} style={{ marginLeft: 4 }}>
-          {item.city}, {item.country}
+          {[item.city, item.country].filter(Boolean).join(', ') || 'No location'}
         </Typography>
       </View>
 
@@ -65,23 +66,21 @@ export default function ApprovalsScreen() {
 
       <View style={styles.actions}>
         <Button 
+          label="Reject"
           variant="outline" 
           size="sm" 
           style={styles.actionBtn}
+          icon={<XCircle size={16} color={palette.danger} />}
           onPress={() => handleAction(item.id, 'REJECTED')}
-        >
-          <XCircle size={16} color={palette.danger} style={{ marginRight: 4 }} />
-          <Typography variant="bodySm" weight="bold" style={{ color: palette.danger }}>Reject</Typography>
-        </Button>
+        />
         <Button 
+          label="Approve"
           variant="primary" 
           size="sm" 
           style={styles.actionBtn}
+          icon={<ShieldCheck size={16} color="#fff" />}
           onPress={() => handleAction(item.id, 'APPROVED')}
-        >
-          <ShieldCheck size={16} color="#fff" style={{ marginRight: 4 }} />
-          <Typography variant="bodySm" weight="bold" style={{ color: '#fff' }}>Approve</Typography>
-        </Button>
+        />
       </View>
     </Card>
   );

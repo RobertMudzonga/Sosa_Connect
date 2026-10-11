@@ -6,18 +6,19 @@ import { Card } from '@/src/components/common/Card';
 import { theme, palette } from '@/src/theme/colors';
 import { spacing, radius } from '@/src/theme/spacing';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useCartStore } from '@/src/store/cart-store';
+import { useCartStore, getUnitPrice } from '@/src/store/cart-store';
+import { formatMoney } from '@/src/utils/format';
 import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 
 export default function CartScreen() {
   const colorScheme = useColorScheme() ?? 'dark';
   const activeTheme = theme[colorScheme];
-  const { items, updateQuantity, removeItem, getTotal } = useCartStore();
+  const router = useRouter();
+  const { items, updateQuantity, removeItem, getTotals, getItemCount } = useCartStore();
 
-  const subtotal = getTotal();
-  const deliveryFee = items.length > 0 ? 5.00 : 0;
-  const tax = subtotal * 0.15; // 15% VAT example
-  const total = subtotal + deliveryFee + tax;
+  // Delivery fees, tax and promos are calculated by the server at checkout
+  const subtotals = Object.entries(getTotals());
 
   // Group items by provider
   const providers = Array.from(new Set(items.map(i => i.providerId)));
@@ -30,9 +31,9 @@ export default function CartScreen() {
         </View>
         <Typography variant="h3" weight="bold" style={{ marginTop: 24 }}>Your cart is empty</Typography>
         <Typography variant="body" color={activeTheme.textSecondary} align="center" style={{ marginTop: 8, paddingHorizontal: 40 }}>
-          Looks like you haven't added anything to your cart yet.
+          Looks like you haven&apos;t added anything to your cart yet.
         </Typography>
-        <Button label="Go Shopping" variant="primary" style={{ marginTop: 32, width: 200 }} />
+        <Button label="Go Shopping" variant="primary" style={{ marginTop: 32, width: 200 }} onPress={() => router.push('/search')} />
       </View>
     );
   }
@@ -41,7 +42,7 @@ export default function CartScreen() {
     <View style={[styles.container, { backgroundColor: activeTheme.background }]}>
       <View style={styles.header}>
         <Typography variant="h2" weight="bold">Your Cart</Typography>
-        <Typography variant="bodySm" color={activeTheme.textSecondary}>{items.length} items from {providers.length} vendors</Typography>
+        <Typography variant="bodySm" color={activeTheme.textSecondary}>{getItemCount()} items from {providers.length} {providers.length === 1 ? 'vendor' : 'vendors'}</Typography>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -53,13 +54,10 @@ export default function CartScreen() {
             <View key={providerId} style={styles.vendorSection}>
               <View style={styles.vendorHeader}>
                 <Typography variant="body" weight="bold">{providerName}</Typography>
-                <View style={[styles.badge, { backgroundColor: activeTheme.surfaceVariant }]}>
-                  <Typography variant="caption" weight="bold" color={activeTheme.primary}>EXPRESS</Typography>
-                </View>
               </View>
 
               {providerItems.map(item => (
-                <Card key={item.id} variant="flat" style={styles.itemCard}>
+                <Card key={item.lineId} variant="flat" style={styles.itemCard}>
                   <View style={styles.itemRow}>
                     <View style={[styles.itemImagePlaceholder, { backgroundColor: activeTheme.border }]}>
                       {item.imageUrl ? <Image source={{ uri: item.imageUrl }} style={styles.image} /> : <ShoppingBag size={20} color="#fff" />}
@@ -67,28 +65,38 @@ export default function CartScreen() {
                     
                     <View style={styles.itemInfo}>
                       <Typography variant="body" weight="semibold" numberOfLines={1}>{item.title}</Typography>
+                      {item.options.length > 0 && (
+                        <Typography variant="caption" color={activeTheme.textSecondary} numberOfLines={2}>
+                          {item.options.map(o => o.name).join(', ')}
+                        </Typography>
+                      )}
+                      {!!item.notes && (
+                        <Typography variant="caption" color={activeTheme.textSecondary} numberOfLines={1}>
+                          “{item.notes}”
+                        </Typography>
+                      )}
                       <Typography variant="bodySm" weight="bold" color={activeTheme.primary}>
-                        {item.currency} {item.price}
+                        {formatMoney(getUnitPrice(item), item.currency)}
                       </Typography>
                     </View>
 
                     <View style={styles.quantityControls}>
                       <TouchableOpacity 
-                        onPress={() => updateQuantity(item.id, -1)}
+                        onPress={() => updateQuantity(item.lineId, -1)}
                         style={[styles.qtyBtn, { borderColor: activeTheme.border }]}
                       >
                         <Minus size={16} color={activeTheme.text} />
                       </TouchableOpacity>
                       <Typography variant="body" weight="bold" style={styles.qtyText}>{item.quantity}</Typography>
                       <TouchableOpacity 
-                        onPress={() => updateQuantity(item.id, 1)}
+                        onPress={() => updateQuantity(item.lineId, 1)}
                         style={[styles.qtyBtn, { borderColor: activeTheme.border }]}
                       >
                         <Plus size={16} color={activeTheme.text} />
                       </TouchableOpacity>
                     </View>
 
-                    <TouchableOpacity onPress={() => removeItem(item.id)} style={styles.deleteBtn}>
+                    <TouchableOpacity onPress={() => removeItem(item.lineId)} style={styles.deleteBtn}>
                       <Trash2 size={20} color={activeTheme.error} />
                     </TouchableOpacity>
                   </View>
@@ -100,26 +108,25 @@ export default function CartScreen() {
 
         <Card variant="outlined" style={styles.summaryCard}>
           <Typography variant="body" weight="bold" style={{ marginBottom: 16 }}>Order Summary</Typography>
-          <View style={styles.summaryRow}>
-            <Typography variant="bodySm" color={activeTheme.textSecondary}>Subtotal</Typography>
-            <Typography variant="bodySm" weight="semibold">USD {subtotal.toFixed(2)}</Typography>
-          </View>
-          <View style={styles.summaryRow}>
-            <Typography variant="bodySm" color={activeTheme.textSecondary}>Delivery Fee</Typography>
-            <Typography variant="bodySm" weight="semibold">USD {deliveryFee.toFixed(2)}</Typography>
-          </View>
-          <View style={styles.summaryRow}>
-            <Typography variant="bodySm" color={activeTheme.textSecondary}>Tax (15%)</Typography>
-            <Typography variant="bodySm" weight="semibold">USD {tax.toFixed(2)}</Typography>
-          </View>
+          {subtotals.map(([currency, amount]) => (
+            <View key={currency} style={styles.summaryRow}>
+              <Typography variant="body" weight="bold">Subtotal{subtotals.length > 1 ? ` (${currency})` : ''}</Typography>
+              <Typography variant="h3" weight="bold" color={activeTheme.primary}>{formatMoney(amount, currency)}</Typography>
+            </View>
+          ))}
           <View style={[styles.divider, { backgroundColor: activeTheme.border }]} />
-          <View style={styles.summaryRow}>
-            <Typography variant="body" weight="bold">Total</Typography>
-            <Typography variant="h3" weight="bold" color={activeTheme.primary}>USD {total.toFixed(2)}</Typography>
-          </View>
+          <Typography variant="caption" color={activeTheme.textSecondary}>
+            Delivery fees, taxes and promo codes are applied at checkout.
+          </Typography>
         </Card>
 
-        <Button label="Proceed to Checkout" variant="primary" style={styles.checkoutBtn} />
+        <Button
+          label="Proceed to Checkout"
+          variant="primary"
+          size="lg"
+          style={styles.checkoutBtn}
+          onPress={() => router.push('/checkout')}
+        />
         <View style={{ height: 40 }} />
       </ScrollView>
     </View>
@@ -160,11 +167,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.sm,
-  },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: radius.xs,
   },
   itemCard: {
     marginBottom: spacing.sm,

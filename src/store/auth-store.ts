@@ -6,7 +6,9 @@ export interface UserProfile {
   id: string;
   email: string;
   fullName: string;
-  role: 'USER' | 'PROVIDER' | 'ADMIN';
+  role: 'USER' | 'PROVIDER' | 'DRIVER' | 'ADMIN';
+  phone?: string;
+  phoneVerified?: boolean;
   avatarUrl?: string;
 }
 
@@ -17,6 +19,7 @@ interface AuthState {
   /** True once Zustand has finished reading persisted state from storage */
   _hydrated: boolean;
   setAuth: (token: string, refreshToken: string, user: UserProfile) => void;
+  setUser: (user: UserProfile) => void;
   clearAuth: () => void;
   isAuthenticated: () => boolean;
   _setHydrated: () => void;
@@ -30,6 +33,7 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       _hydrated: false,
       setAuth: (token, refreshToken, user) => set({ token, refreshToken, user }),
+      setUser: (user) => set({ user }),
       clearAuth: () => set({ token: null, refreshToken: null, user: null }),
       isAuthenticated: () => !!get().token && !!get().user,
       _setHydrated: () => set({ _hydrated: true }),
