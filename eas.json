@@ -22,6 +22,15 @@
         "ALLOW_HTTP": "1"
       }
     },
+    "demo": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "API_URL": "https://kuwana-api.onrender.com/api/v1"
+      }
+    },
     "production": {
       "autoIncrement": true
     }
