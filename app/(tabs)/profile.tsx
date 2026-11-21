@@ -8,7 +8,7 @@ import { spacing, radius } from '@/src/theme/spacing';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuthStore } from '@/src/store/auth-store';
 import { useAppStore } from '@/src/store/app-store';
-import { Bell, Shield, LogOut, ChevronRight, AlertCircle, ShoppingBag, MapPin, Heart, Settings, Truck, ClipboardList, Smartphone, Siren } from 'lucide-react-native';
+import { Bell, Shield, LogOut, ChevronRight, AlertCircle, ShoppingBag, MapPin, Heart, Settings, Truck, ClipboardList, Smartphone, Siren, Package, Store } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { unregisterFromPush } from '@/src/services/notifications';
 import { useCartStore } from '@/src/store/cart-store';
@@ -23,7 +23,9 @@ export default function ProfileScreen() {
   const clearCart = useCartStore((s) => s.clearCart);
 
   const MENU_ITEMS: { id: string; label: string; icon: any; route: string; requiresAuth?: boolean; right?: React.ReactNode }[] = [
-    { id: 'orders', label: 'My Orders', icon: ShoppingBag, route: '/orders', requiresAuth: true },
+    { id: 'shop-orders', label: 'Shop Orders', icon: Package, route: '/market/orders', requiresAuth: true },
+    { id: 'merchant', label: 'Sell on Kuwana', icon: Store, route: '/merchant', requiresAuth: true },
+    { id: 'orders', label: 'Food & Service Orders', icon: ShoppingBag, route: '/orders', requiresAuth: true },
     { id: 'addresses', label: 'Saved Addresses', icon: MapPin, route: '/addresses', requiresAuth: true },
     { id: 'favourites', label: 'Favourites', icon: Heart, route: '/favourites' },
     {
@@ -41,11 +43,20 @@ export default function ProfileScreen() {
   if (user?.role === 'PROVIDER') {
     MENU_ITEMS.unshift({ id: 'seller-orders', label: 'Incoming Orders', icon: ClipboardList, route: '/seller/orders' });
   }
+  if (user && !['STORE_STAFF', 'ADMIN', 'WAREHOUSE', 'PICKUP_AGENT', 'SELLER', 'PROVIDER'].includes(user.role)) {
+    MENU_ITEMS.unshift({ id: 'drive', label: 'Drive with Kuwana', icon: Truck, route: '/drive' });
+  }
+  if (user?.role === 'STORE_STAFF') {
+    MENU_ITEMS.unshift({ id: 'store-orders', label: 'Store orders', icon: ClipboardList, route: '/merchant/orders' });
+  }
   if (user?.role === 'DRIVER') {
     MENU_ITEMS.unshift({ id: 'driver', label: 'My Deliveries', icon: Truck, route: '/driver' });
   }
   if (user?.role === 'ADMIN') {
     MENU_ITEMS.unshift({ id: 'admin', label: 'Admin Dashboard', icon: Settings, route: '/admin' });
+  }
+  if (user && ['ADMIN', 'WAREHOUSE', 'DRIVER', 'PICKUP_AGENT'].includes(user.role)) {
+    MENU_ITEMS.unshift({ id: 'ops', label: user.role === 'ADMIN' ? 'Marketplace Operations' : 'Kuwana Operations', icon: Truck, route: '/ops' });
   }
 
   const goToLogin = () => {

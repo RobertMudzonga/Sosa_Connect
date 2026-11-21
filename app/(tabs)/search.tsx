@@ -10,10 +10,59 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { CheckCircle2 } from 'lucide-react-native';
 import { useServices } from '@/src/hooks/useServices';
 import { toProduct } from '@/src/utils/product';
+import { ProductSearch } from '@/src/components/marketplace/ProductSearch';
+import { CurrencyToggle } from '@/src/components/marketplace/CurrencyToggle';
+import { useMarketTheme } from '@/src/components/marketplace/useMarketTheme';
 
 const CATEGORIES = ['All', 'Goods', 'Food', 'Services', 'Delivery'];
 
+type SearchMode = 'products' | 'services';
+
 export default function SearchScreen() {
+  const t = useMarketTheme();
+  const params = useLocalSearchParams<{ category?: string; mode?: SearchMode; department?: string }>();
+  // Service-category deep links (?category=FOOD) open Services; everything else opens the product catalog
+  const [mode, setMode] = useState<SearchMode>(params.category ? 'services' : 'products');
+
+  useEffect(() => {
+    if (params.mode) setMode(params.mode);
+    else if (params.category) setMode('services');
+  }, [params.mode, params.category]);
+
+  return (
+    <View style={[styles.container, { backgroundColor: t.background }]}>
+      <View style={[styles.header, styles.headerRow]}>
+        <View style={{ flex: 1 }}>
+          <Typography variant="h2" weight="bold">Marketplace</Typography>
+          <Typography variant="bodySm" color={t.textSecondary}>
+            {mode === 'products' ? 'From local stores, delivered by nearby drivers' : 'Find what you need in your community'}
+          </Typography>
+        </View>
+        {mode === 'products' && <CurrencyToggle />}
+      </View>
+
+      <View style={[styles.segment, { backgroundColor: t.surfaceVariant }]} accessibilityRole="tablist">
+        {(['products', 'services'] as const).map((m) => (
+          <TouchableOpacity
+            key={m}
+            onPress={() => setMode(m)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: mode === m }}
+            style={[styles.segmentBtn, mode === m && { backgroundColor: t.primary }]}
+          >
+            <Typography variant="bodySm" weight="semibold" style={{ color: mode === m ? '#fff' : t.textSecondary }}>
+              {m === 'products' ? 'Products' : 'Food & Services'}
+            </Typography>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {mode === 'products' ? <ProductSearch initialCategory={params.department} /> : <ServicesSearch />}
+    </View>
+  );
+}
+
+function ServicesSearch() {
   const colorScheme = useColorScheme() ?? 'dark';
   const activeTheme = theme[colorScheme];
   const params = useLocalSearchParams<{ category?: string }>();
@@ -44,12 +93,7 @@ export default function SearchScreen() {
     .filter(p => !verifiedOnly || p.isVerified);
 
   return (
-    <View style={[styles.container, { backgroundColor: activeTheme.background }]}>
-      <View style={styles.header}>
-        <Typography variant="h2" weight="bold">Marketplace</Typography>
-        <Typography variant="bodySm" color={activeTheme.textSecondary}>Find what you need in your community</Typography>
-      </View>
-
+    <View style={{ flex: 1 }}>
       <SearchBar 
         value={search} 
         onChangeText={setSearch} 
@@ -68,7 +112,7 @@ export default function SearchScreen() {
               onPress={() => setSelectedCategory(cat)}
               style={[
                 styles.categoryChip, 
-                { backgroundColor: selectedCategory === cat ? activeTheme.primary : activeTheme.surfaceVariant }
+                { backgroundColor: selectedCategory === cat ? '#0F172A' : activeTheme.surface, borderColor: selectedCategory === cat ? '#0F172A' : activeTheme.border, borderWidth: 1 }
               ]}
             >
               <Typography 
@@ -131,6 +175,25 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: spacing.lg,
     marginBottom: spacing.md,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  segment: {
+    flexDirection: 'row',
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    padding: 4,
+    borderRadius: radius.md,
+    gap: 4,
+  },
+  segmentBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: radius.sm,
+    alignItems: 'center',
   },
   categoriesContainer: {
     paddingHorizontal: spacing.lg,

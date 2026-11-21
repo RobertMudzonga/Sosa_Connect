@@ -7,7 +7,7 @@ import {
   View,
   Platform
 } from 'react-native';
-import { theme } from '../../theme/colors';
+import { theme, palette } from '../../theme/colors';
 import { spacing, radius } from '../../theme/spacing';
 import { Typography } from './Typography';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -41,7 +41,7 @@ export const Button: React.FC<ButtonProps> = ({
       case 'outline': return {
         backgroundColor: 'transparent' as const,
         borderWidth: 1,
-        borderColor: activeTheme.primary,
+        borderColor: colorScheme === 'dark' ? palette.primary[200] : activeTheme.primary,
       };
       case 'ghost': return { backgroundColor: 'transparent' as const };
       case 'danger': return { backgroundColor: activeTheme.error };
@@ -58,9 +58,11 @@ export const Button: React.FC<ButtonProps> = ({
   ];
 
   const textVariant = size === 'sm' ? 'bodySm' : 'body';
-  const textColor = variant === 'outline' || variant === 'ghost' 
-    ? activeTheme.primary 
-    : variant === 'danger' ? '#fff' : activeTheme.background;
+  // Navy primary is unreadable as text on the dark background, so outline/ghost use a light tint there
+  const outlineColor = colorScheme === 'dark' ? palette.primary[200] : activeTheme.primary;
+  const textColor = variant === 'primary' || variant === 'danger'
+    ? '#fff'
+    : variant === 'secondary' ? activeTheme.text : outlineColor;
 
   const handlePress = (event?: any) => {
     if (!disabled && !loading && onPress) {
@@ -74,9 +76,7 @@ export const Button: React.FC<ButtonProps> = ({
       : variant === 'secondary' ? activeTheme.surfaceVariant
       : variant === 'danger' ? activeTheme.error : 'transparent';
     
-    const variantText = variant === 'outline' || variant === 'ghost' 
-      ? activeTheme.primary 
-      : variant === 'danger' ? '#fff' : activeTheme.background;
+    const variantText = textColor;
 
     return (
       <button
@@ -86,7 +86,7 @@ export const Button: React.FC<ButtonProps> = ({
         style={{
           borderRadius: radius.md,
           padding: size === 'sm' ? '6px 12px' : size === 'md' ? '10px 16px' : '12px 20px',
-          border: variant === 'outline' ? `1px solid ${activeTheme.primary}` : 'none',
+          border: variant === 'outline' ? `1px solid ${outlineColor}` : 'none',
           backgroundColor: variantBg,
           color: variantText,
           fontSize: size === 'sm' ? '14px' : '16px',

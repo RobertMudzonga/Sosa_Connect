@@ -7,13 +7,17 @@ export interface Address {
   line1: string;
   line2?: string;
   city: string;
+  /** Structured town from /logistics/cities (drives delivery fees and COD) */
+  cityId?: string | null;
+  suburb?: string | null;
+  landmark?: string | null;
   lat?: number;
   lng?: number;
   instructions?: string;
   isDefault?: boolean;
 }
 
-export type AddressInput = Omit<Address, 'id'>;
+export type AddressInput = Omit<Address, 'id' | 'city'> & { city?: string };
 
 export const useAddresses = (enabled = true) => {
   return useQuery({
@@ -47,5 +51,5 @@ export const useDeleteAddress = () => {
   });
 };
 
-export const formatAddress = (a: Pick<Address, 'line1' | 'line2' | 'city'>) =>
-  [a.line1, a.line2, a.city].filter(Boolean).join(', ');
+export const formatAddress = (a: Pick<Address, 'line1' | 'line2' | 'city'> & { suburb?: string | null }) =>
+  [a.line1, a.line2, a.suburb, a.city].filter(Boolean).join(', ');

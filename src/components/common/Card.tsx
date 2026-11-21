@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, ViewProps, StyleSheet } from 'react-native';
-import { theme } from '../../theme/colors';
+import { theme, shadowXs } from '../../theme/colors';
 import { spacing, radius } from '../../theme/spacing';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -23,14 +23,12 @@ export const Card: React.FC<CardProps> = ({
     switch (variant) {
       case 'elevated': return {
         backgroundColor: activeTheme.surface,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 4,
+        borderWidth: 1,
+        borderColor: activeTheme.border,
+        ...shadowXs,
       };
       case 'outlined': return {
-        backgroundColor: 'transparent' as const,
+        backgroundColor: activeTheme.surface,
         borderWidth: 1,
         borderColor: activeTheme.border,
       };

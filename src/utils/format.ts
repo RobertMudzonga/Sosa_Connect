@@ -1,7 +1,21 @@
 export const formatMoney = (amount: number, currency = 'USD') =>
   `${currency} ${Number(amount || 0).toFixed(2)}`;
 
-export const formatDateTime = (iso?: string) => {
+const twoDp = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/**
+ * Format a dual-currency price for display: "$189.00" or "ZiG 5,055.75".
+ * Falls back to USD if no ZiG amount is available (no exchange rate set yet).
+ */
+export const formatPrice = (price: { usd: number; zwg: number | null } | null | undefined, currency: 'USD' | 'ZWG') => {
+  if (!price) return '';
+  if (currency === 'ZWG' && price.zwg !== null) return `ZiG ${twoDp(price.zwg)}`;
+  return `$${twoDp(price.usd)}`;
+};
+
+export const currencyLabel = (currency: 'USD' | 'ZWG') => (currency === 'ZWG' ? 'ZiG' : 'USD');
+
+export const formatDateTime =(iso?: string) => {
   if (!iso) return '';
   const d = new Date(iso);
   return d.toLocaleString(undefined, {

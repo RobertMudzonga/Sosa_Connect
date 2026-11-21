@@ -10,12 +10,15 @@ import { useCartStore, getUnitPrice } from '@/src/store/cart-store';
 import { formatMoney } from '@/src/utils/format';
 import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { MarketCartSection } from '@/src/components/marketplace/MarketCartSection';
+import { useMarketCartStore, marketCartCount } from '@/src/store/market-cart-store';
 
 export default function CartScreen() {
   const colorScheme = useColorScheme() ?? 'dark';
   const activeTheme = theme[colorScheme];
   const router = useRouter();
   const { items, updateQuantity, removeItem, getTotals, getItemCount } = useCartStore();
+  const marketLines = useMarketCartStore((s) => s.lines);
 
   // Delivery fees, tax and promos are calculated by the server at checkout
   const subtotals = Object.entries(getTotals());
@@ -23,7 +26,7 @@ export default function CartScreen() {
   // Group items by provider
   const providers = Array.from(new Set(items.map(i => i.providerId)));
 
-  if (items.length === 0) {
+  if (items.length === 0 && marketLines.length === 0) {
     return (
       <View style={[styles.emptyContainer, { backgroundColor: activeTheme.background }]}>
         <View style={[styles.emptyIconBox, { backgroundColor: activeTheme.surfaceVariant }]}>
@@ -42,10 +45,19 @@ export default function CartScreen() {
     <View style={[styles.container, { backgroundColor: activeTheme.background }]}>
       <View style={styles.header}>
         <Typography variant="h2" weight="bold">Your Cart</Typography>
-        <Typography variant="bodySm" color={activeTheme.textSecondary}>{getItemCount()} items from {providers.length} {providers.length === 1 ? 'vendor' : 'vendors'}</Typography>
+        <Typography variant="bodySm" color={activeTheme.textSecondary}>
+          {getItemCount() + marketCartCount(marketLines)} items
+        </Typography>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {marketLines.length > 0 && <MarketCartSection />}
+
+        {items.length > 0 && (
+        <>
+        {marketLines.length > 0 && (
+          <Typography variant="h3" weight="bold" style={{ marginBottom: spacing.sm }}>Food & services</Typography>
+        )}
         {providers.map(providerId => {
           const providerItems = items.filter(i => i.providerId === providerId);
           const providerName = providerItems[0].providerName;
@@ -127,6 +139,8 @@ export default function CartScreen() {
           style={styles.checkoutBtn}
           onPress={() => router.push('/checkout')}
         />
+        </>
+        )}
         <View style={{ height: 40 }} />
       </ScrollView>
     </View>

@@ -73,7 +73,7 @@ export const unregisterFromPush = async () => {
 
 /**
  * Registers the device while signed in with notifications enabled, and routes
- * notification taps. Expected payload: { type: 'ORDER_UPDATE' | 'NEW_ORDER' | 'NEW_DELIVERY' | 'EMERGENCY_ALERT', orderId? }
+ * notification taps. Expected payload: { type: 'ORDER_UPDATE' | 'NEW_ORDER' | 'NEW_DELIVERY' | 'EMERGENCY_ALERT' | 'PRODUCT_REQUEST', orderId? }
  */
 export const usePushNotifications = () => {
   const router = useRouter();
@@ -93,6 +93,7 @@ export const usePushNotifications = () => {
       if (data?.type === 'EMERGENCY_ALERT') router.push('/admin/alerts');
       else if (data?.type === 'NEW_ORDER') router.push('/seller/orders');
       else if (data?.type === 'NEW_DELIVERY') router.push('/driver');
+      else if (data?.type === 'PRODUCT_REQUEST') router.push('/merchant/requests');
       else if (data?.orderId) router.push({ pathname: '/orders/[id]', params: { id: data.orderId } });
     });
     return () => subscription.remove();

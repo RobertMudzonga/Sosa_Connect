@@ -39,6 +39,7 @@ export default function VerifyPhoneScreen() {
 
   const finish = () => {
     if (returnTo === 'checkout') router.replace('/checkout');
+    else if (returnTo === 'market-checkout') router.replace('/market/checkout');
     else if (router.canGoBack()) router.back();
     else router.replace('/(tabs)');
   };
@@ -126,7 +127,7 @@ export default function VerifyPhoneScreen() {
         </View>
       )}
 
-      {returnTo !== 'checkout' && (
+      {returnTo !== 'checkout' && returnTo !== 'market-checkout' && (
         <Button label="Skip for now" variant="ghost" onPress={finish} style={{ marginTop: spacing.lg }} />
       )}
     </ScrollView>

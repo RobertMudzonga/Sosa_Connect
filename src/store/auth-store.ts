@@ -6,7 +6,7 @@ export interface UserProfile {
   id: string;
   email: string;
   fullName: string;
-  role: 'USER' | 'PROVIDER' | 'DRIVER' | 'ADMIN';
+  role: 'USER' | 'PROVIDER' | 'DRIVER' | 'ADMIN' | 'SELLER' | 'WAREHOUSE' | 'PICKUP_AGENT' | 'STORE_STAFF';
   phone?: string;
   phoneVerified?: boolean;
   avatarUrl?: string;

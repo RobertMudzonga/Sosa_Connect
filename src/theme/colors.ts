@@ -1,7 +1,24 @@
 /**
  * Kuwana — Find What Matters
- * Premium Design System with Navy & Slate palette.
+ * Light, minimal marketplace palette: off-white canvas, white cards with hairline slate borders,
+ * charcoal text and a single brand blue kept for primary actions, active states and the currency pill.
  */
+
+/** The one brand accent. Use sparingly: primary buttons, active tabs/chips, links that act. */
+export const brand = {
+  blue: '#0B66C3',
+  blueDark: '#08509A',
+  blueSoft: '#E8F1FB',
+};
+
+/** Soft elevation for cards (the "shadow-xs" level) */
+export const shadowXs = {
+  shadowColor: '#0F172A',
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.05,
+  shadowRadius: 3,
+  elevation: 1,
+} as const;
 
 export const palette = {
   // Brand Colors (Kuwana Navy)
@@ -70,15 +87,15 @@ export const theme = {
     warning: palette.warning,
   },
   light: {
-    primary: palette.primary[600],
-    background: palette.neutral[50],
-    surface: '#ffffff',
-    surfaceVariant: palette.neutral[100],
-    text: palette.neutral[950],
-    textSecondary: palette.neutral[500],
-    border: palette.neutral[200],
-    error: palette.danger,
-    success: palette.success,
-    warning: palette.warning,
+    primary: brand.blue,
+    background: '#F8FAFC',
+    surface: '#FFFFFF',
+    surfaceVariant: '#F1F5F9',
+    text: '#0F172A',
+    textSecondary: '#64748B',
+    border: '#E2E8F0',
+    error: '#DC2626',
+    success: '#16A34A',
+    warning: '#D97706',
   },
 };

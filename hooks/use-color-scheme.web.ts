@@ -1,21 +1,7 @@
-import { useEffect, useState } from 'react';
-import { useColorScheme as useRNColorScheme } from 'react-native';
-
 /**
- * To support static rendering, this value needs to be re-calculated on the client side for web
+ * The app is light-only: a bright, minimal marketplace look on every screen and platform.
+ * Kept as a hook so screens don't change if a dark theme comes back later.
  */
-export function useColorScheme() {
-  const [hasHydrated, setHasHydrated] = useState(false);
-
-  useEffect(() => {
-    setHasHydrated(true);
-  }, []);
-
-  const colorScheme = useRNColorScheme();
-
-  if (hasHydrated) {
-    return colorScheme;
-  }
-
+export function useColorScheme(): 'light' | 'dark' {
   return 'light';
 }

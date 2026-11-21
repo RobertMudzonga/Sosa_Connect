@@ -1,95 +1,55 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ambulance, Shield, Flame, ArrowRight } from 'lucide-react-native';
-import { Typography } from '../common/Typography';
-import { theme, palette } from '../../theme/colors';
-import { spacing, radius } from '../../theme/spacing';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ambulance, Shield, Flame } from 'lucide-react-native';
+import { Typography } from '../common/Typography';
+import { useMarketTheme } from '../marketplace/useMarketTheme';
+import { spacing, radius } from '../../theme/spacing';
+import { shadowXs } from '../../theme/colors';
 
 const SERVICES = [
-  { id: '1', title: 'Medical', subtitle: 'Ambulance', icon: Ambulance, color: palette.danger },
-  { id: '2', title: 'Security', subtitle: 'Police', icon: Shield, color: palette.primary[600] },
-  { id: '3', title: 'Fire', subtitle: 'Fire Rescue', icon: Flame, color: palette.warning },
+  { id: 'medical', title: 'Medical', icon: Ambulance, tint: '#DC2626', soft: '#FEF2F2' },
+  { id: 'security', title: 'Security', icon: Shield, tint: '#2563EB', soft: '#EFF6FF' },
+  { id: 'fire', title: 'Fire', icon: Flame, tint: '#D97706', soft: '#FFFBEB' },
 ];
 
+/** Compact emergency strip: white pills with tinted icon badges. The full SOS screen is in the tab bar. */
 export const EmergencyQuickAccess: React.FC = () => {
-  const colorScheme = useColorScheme() ?? 'dark';
-  const activeTheme = theme[colorScheme];
+  const t = useMarketTheme();
   const router = useRouter();
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.titleGroup}>
-          <View style={[styles.alertIcon, { backgroundColor: activeTheme.error }]}>
-            <Typography variant="caption" style={{ color: '#fff' }}>⚠</Typography>
-          </View>
-          <Typography variant="h3" weight="bold">Emergency Services</Typography>
-        </View>
-        <TouchableOpacity onPress={() => router.push('/sos' as any)}>
-          <Typography variant="bodySm" weight="semibold" color={activeTheme.primary}>View All</Typography>
+        <Typography variant="bodySm" weight="semibold" color={t.textSecondary}>Emergency help</Typography>
+        <TouchableOpacity onPress={() => router.push('/sos' as never)} accessibilityRole="link">
+          <Typography variant="bodySm" weight="semibold" color={t.accent}>View all</Typography>
         </TouchableOpacity>
       </View>
-
-      <View style={styles.grid}>
-        {SERVICES.map((service, index) => (
-          <TouchableOpacity 
-            key={service.id} 
-            style={[
-              styles.card, 
-              { backgroundColor: service.color },
-              index === 0 && styles.cardLarge
-            ]}
-            onPress={() => router.push('/sos' as any)}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.strip}>
+        {SERVICES.map((s) => (
+          <TouchableOpacity
+            key={s.id}
+            onPress={() => router.push('/sos' as never)}
+            style={[styles.pill, shadowXs, { backgroundColor: t.surface, borderColor: t.border }]}
+            accessibilityRole="button"
+            accessibilityLabel={`${s.title} emergency`}
           >
-            <service.icon color="#fff" size={index === 0 ? 32 : 24} />
-            <View>
-              <Typography variant="body" weight="bold" style={{ color: '#fff' }}>{service.title}</Typography>
-              <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.7)' }}>{service.subtitle}</Typography>
+            <View style={[styles.badge, { backgroundColor: s.soft }]}>
+              <s.icon size={15} color={s.tint} />
             </View>
+            <Typography variant="bodySm" weight="semibold">{s.title}</Typography>
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.xl,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  titleGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  alertIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: radius.xs,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  grid: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  card: {
-    flex: 1,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    height: 120,
-    justifyContent: 'space-between',
-  },
-  cardLarge: {
-    height: 140,
-  },
+  container: { marginBottom: spacing.lg },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.lg, marginBottom: spacing.sm },
+  strip: { paddingHorizontal: spacing.lg, gap: spacing.sm },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, borderWidth: 1, borderRadius: radius.full, paddingVertical: 6, paddingLeft: 6, paddingRight: 14 },
+  badge: { width: 28, height: 28, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center' },
 });

@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   },
   dateBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    backgroundColor: '#F1F5F9',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: radius.xs,
